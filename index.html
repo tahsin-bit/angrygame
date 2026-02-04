@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Angry Infinite Runner - Nasir Game</title>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background: #87CEEB; /* Sky color */
+            touch-action: none; 
+        }
+        canvas { 
+            display: block; 
+            image-rendering: pixelated; 
+            width: 100vw; height: 100vh;
+            position: absolute; top: 0; left: 0;
+        }
+
+        /* Menu Design - Game Theme */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: flex-start;
+            z-index: 20;
+        }
+
+        /* Full Width Mock Ground for Selection Screen */
+        #selection-bg {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 60px;
+            background: #553311; border-top: 10px solid #228B22;
+            z-index: -1; 
+        }
+
+        .menu-box {
+            margin-top: 5vh; text-align: center; color: white;
+            font-family: 'Courier New', Courier, monospace; pointer-events: auto;
+            width: 100%; height: 95vh; 
+            display: flex; flex-direction: column; align-items: center;
+            text-shadow: 3px 3px #000;
+        }
+
+        h2 { font-size: 28px; margin-bottom: 20px; color: #fff; }
+
+        /* Instructions Box Style */
+        .instructions {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #fbc531;
+            max-width: 80%;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: left;
+            text-shadow: 1px 1px #000;
+        }
+
+        .instructions h3 { margin: 0 0 10px 0; color: #fbc531; text-align: center; }
+
+        .char-options { 
+            display: flex; justify-content: center; gap: 40px; 
+            align-items: flex-end; height: 200px; width: 100%;
+            padding-bottom: 60px; 
+        }
+
+        .char-card { 
+            cursor: pointer; transition: transform 0.2s; 
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+        }
+
+        .char-card:hover { transform: scale(1.1); }
+        .char-card img { 
+            width: 100px; height: 100px; object-fit: contain;
+            filter: drop-shadow(5px 5px 0px rgba(0,0,0,0.5));
+        }
+
+        .char-card p { 
+            background: rgba(0,0,0,0.7); padding: 5px 15px; 
+            border-radius: 5px; margin-top: 15px; border: 2px solid #fff;
+            font-weight: bold; font-size: 14px;
+        }
+
+        /* Stats UI */
+        #ui-stats {
+            position: absolute; top: 15px; left: 15px;
+            color: white; font-family: 'Courier New', Courier, monospace;
+            font-size: 18px; text-shadow: 2px 2px #000; pointer-events: none;
+            z-index: 30; display: none;
+        }
+
+        .button-container {
+            display: flex; gap: 20px; margin-top: 20px;
+        }
+
+        button { 
+            padding: 12px 24px; font-size: 18px; cursor: pointer; 
+            background: #ff4757; color: white; border: 3px solid #fff; 
+            border-radius: 8px; font-family: 'Courier New', Courier, monospace;
+            box-shadow: 4px 4px 0px #000;
+        }
+
+        button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
+        .btn-main { background: #2f3542; }
+
+        #gameOver {
+            background: rgba(0,0,0,0.85); padding: 40px; border-radius: 20px;
+            border: 4px solid #ff4757; display: none; margin-top: 20vh;
+            width: 85%; max-width: 450px; height: auto;
+        }
+
+        @media (min-width: 1024px) { 
+            #ui-stats { font-size: 32px; } 
+            .char-card img { width: 180px; height: 180px; }
+            .instructions { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="selectionMenu" class="menu-box">
+            <h2>KAKE RAGHATE CHAO?</h2>
+
+            <div class="instructions">
+                <h3>কিভাবে রাগাবেন? 😡</h3>
+                * স্ক্রিনে ক্লিক করে <b>Voting Board</b> গুলোর উপর দিয়ে লাফিয়ে যান।<br>
+                * আপনি যতবার সফলভাবে বাধা পার করবেন, পেছনের চ্যজারের <b>Anger (রাগ)</b> তত বাড়বে!<br>
+                * রাগ ১০ পূর্ণ হলে চ্যজার লাল হয়ে যাবে এবং গেমের স্পিড বেড়ে যাবে!<br>
+                * কয়েন ধরলে স্কোর বাড়বে কিন্তু সাবধান, টাচ লাগলেই গেম ওভার!
+            </div>
+
+            <div class="char-options">
+                <div class="char-card" onclick="startGame('mirza_chaser')">
+                    <img src="file:///C:/Users/newmi/Desktop/nasir%20game/image-325864-1761651827-removebg-preview.png" alt="Mirza Abbas">
+                    <p>Mirza Abbas</p>
+                </div>
+                <div class="char-card" onclick="startGame('nasir_chaser')">
+                    <img src="file:///C:/Users/newmi/Desktop/nasir%20game/e9729e3eab0fc9d83ecf1ce2abb1516a_medium-removebg-preview.png" alt="Nasir Patowary">
+                    <p>Nasir Patowary</p>
+                </div>
+            </div>
+            <div id="selection-bg"></div>
+        </div>
+
+        <div id="gameOver" class="menu-box">
+            <h1 style="color: #ff4757; font-size: 40px; margin: 0;">GAME OVER!</h1>
+            <p style="font-size: 20px; margin: 10px 0;">Touch lege geche!</p>
+            <p style="font-size: 28px; margin: 10px 0;">Score: <span id="finalScore" style="color:#fbc531">0</span></p>
+            
+            <div class="button-container">
+                <button onclick="restartCurrentGame()">RESTART</button>
+                <button class="btn-main" onclick="location.reload()">MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui-stats">
+        SCORE: <span id="scoreVal">0</span><br>
+        ANGER: <span id="angerMeter">▒▒▒▒▒▒▒▒▒▒</span>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const uiStats = document.getElementById('ui-stats');
+        const selectionMenu = document.getElementById('selectionMenu');
+        const gameOverEl = document.getElementById('gameOver');
+
+        const player = { x: 0, y: 0, width: 0, height: 0, dy: 0, jumpForce: -16, isGrounded: false, img: new Image() };
+        const chaser = { x: 0, y: 0, width: 0, height: 0, img: new Image() }; 
+        
+        let scale = 1, groundY = 0, score = 0, angerPoints = 0, gameActive = false;
+        let gameSpeed = 5.0, gravity = 0.8, animationId, spawnTimeout;
+        let obstacles = [], coins = [], currentMode = '';
+
+        const imgMirza = "file:///C:/Users/newmi/Desktop/nasir%20game/image-325864-1761651827-removebg-preview.png";
+        const imgNasir = "file:///C:/Users/newmi/Desktop/nasir%20game/e9729e3eab0fc9d83ecf1ce2abb1516a_medium-removebg-preview.png";
+        const obstacleImg = new Image(); obstacleImg.src = "file:///C:/Users/newmi/Desktop/nasir%20game/Voting_Board-removebg-preview.png";
+        const coinImg = new Image(); coinImg.src = "file:///C:/Users/newmi/Desktop/nasir%20game/vecteezy_shiny-coins-clipart-design-illustration_9398440.png";
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            scale = canvas.width > 1024 ? 1.5 : (canvas.width / 400); 
+            groundY = canvas.height - (60 * scale);
+            player.width = chaser.width = 70 * scale;
+            player.height = chaser.height = 70 * scale;
+            player.x = 130 * scale;
+            chaser.x = 15 * scale;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function startGame(mode) {
+            currentMode = mode;
+            if(mode === 'mirza_chaser') {
+                chaser.img.src = imgMirza;
+                player.img.src = imgNasir;
+            } else {
+                chaser.img.src = imgNasir;
+                player.img.src = imgMirza;
+            }
+            
+            selectionMenu.style.display = 'none';
+            gameOverEl.style.display = 'none';
+            uiStats.style.display = 'block';
+            resetGameLogic();
+            gameActive = true;
+            spawnElements();
+            draw();
+        }
+
+        function restartCurrentGame() {
+            cancelAnimationFrame(animationId);
+            clearTimeout(spawnTimeout);
+            startGame(currentMode);
+        }
+
+        function handleJump() {
+            if (player.isGrounded && gameActive) {
+                player.dy = player.jumpForce * scale;
+                player.isGrounded = false;
+            }
+        }
+
+        window.addEventListener('touchstart', (e) => { if(gameActive) { handleJump(); e.preventDefault(); } }, {passive: false});
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleJump(); });
+
+        function spawnElements() {
+            if (!gameActive) return;
+            if (Math.random() > 0.4) {
+                obstacles.push({ x: canvas.width, y: groundY - (60 * scale), width: 50 * scale, height: 60 * scale, passed: false });
+            } else {
+                let cSize = 40 * scale;
+                coins.push({ x: canvas.width, y: groundY - cSize, width: cSize, height: cSize });
+            }
+            spawnTimeout = setTimeout(spawnElements, Math.random() * 600 + Math.max(1000, 2200 - (score * 4)));
+        }
+
+        function update() {
+            player.dy += gravity * scale; 
+            player.y += player.dy;
+            if (player.y + player.height > groundY) {
+                player.y = groundY - player.height;
+                player.dy = 0;
+                player.isGrounded = true;
+            }
+            chaser.y = groundY - chaser.height;
+
+            obstacles.forEach((obs, i) => {
+                obs.x -= gameSpeed * scale;
+                let pBox = { x: player.x + 15, y: player.y + 10, w: player.width - 30, h: player.height - 15 };
+                if (pBox.x < obs.x + obs.width && pBox.x + pBox.w > obs.x && pBox.y < obs.y + obs.height && pBox.y + pBox.h > obs.y) endGame();
+                if (!obs.passed && obs.x + obs.width < player.x) {
+                    obs.passed = true; score += 5; angerPoints++; updateAngerUI();
+                }
+            });
+            obstacles = obstacles.filter(o => o.x > -100);
+
+            coins.forEach((c, i) => {
+                c.x -= gameSpeed * scale;
+                if (player.x < c.x + c.width && player.x + player.width > c.x && player.y < c.y + c.height && player.y + player.height > c.y) {
+                    coins.splice(i, 1); score += 15;
+                }
+            });
+            coins = coins.filter(c => c.x > -50);
+            document.getElementById('scoreVal').innerText = score;
+        }
+
+        function updateAngerUI() {
+            let level = Math.min(angerPoints, 10);
+            document.getElementById('angerMeter').innerText = "█".repeat(level) + "▒".repeat(10 - level);
+            if (angerPoints > 0 && angerPoints % 5 === 0) gameSpeed += 0.2;
+        }
+
+        function draw() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#87CEEB"; ctx.fillRect(0, 0, canvas.width, groundY);
+            ctx.fillStyle = "#553311"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            ctx.fillStyle = "#228B22"; ctx.fillRect(0, groundY, canvas.width, 10 * scale);
+
+            if (angerPoints >= 10) {
+                ctx.save();
+                ctx.shadowBlur = 40; ctx.shadowColor = "red";
+                ctx.drawImage(chaser.img, chaser.x, chaser.y, chaser.width, chaser.height);
+                ctx.restore();
+            } else {
+                ctx.drawImage(chaser.img, chaser.x, chaser.y, chaser.width, chaser.height);
+            }
+
+            ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
+            obstacles.forEach(obs => ctx.drawImage(obstacleImg, obs.x, obs.y, obs.width, obs.height));
+            coins.forEach(c => ctx.drawImage(coinImg, c.x, c.y, c.width, c.height));
+
+            update();
+            animationId = requestAnimationFrame(draw);
+        }
+
+        function endGame() {
+            gameActive = false;
+            cancelAnimationFrame(animationId);
+            clearTimeout(spawnTimeout);
+            document.getElementById('finalScore').innerText = score;
+            gameOverEl.style.display = 'flex';
+        }
+
+        function resetGameLogic() {
+            score = 0; angerPoints = 0; gameSpeed = 5.0;
+            obstacles = []; coins = [];
+            player.dy = 0;
+            updateAngerUI();
+        }
+    </script>
+</body>
+</html>
